@@ -1,5 +1,3 @@
-# -*- encoding: utf-8 -*-
-
 from datetime import datetime
 import sys
 
@@ -150,31 +148,6 @@ def initial_signals():
             pass
 
 
-##
-# Compatibility section
-##
-
-PY2 = sys.version_info[0] == 2
-PY3 = sys.version_info[0] == 3
-
-
-def python_2_unicode_compatible(klass):
-    """
-    A decorator that defines __unicode__ and __str__ methods under Python 2.
-    Under Python 3 it does nothing.
-    To support Python 2 and 3 with a single code base, define a __str__ method
-    returning text and apply this decorator to the class.
-    """
-    if PY2:
-        if '__str__' not in klass.__dict__:
-            raise ValueError("@python_2_unicode_compatible cannot be applied "
-                             "to %s because it doesn't define __str__()." %
-                             klass.__name__)
-        klass.__unicode__ = klass.__str__
-        klass.__str__ = lambda self: self.__unicode__().encode('utf-8')
-    return klass
-
-
 def import_by_string(dotted_path):
     """Import class by his full module path.
 
@@ -184,51 +157,18 @@ def import_by_string(dotted_path):
         dotted_path - string, full import path for class.
 
     """
+    from django.utils.module_loading import import_string
 
-    import_string = None
-
-    # Django >= 1.5, < 1.7
-    try:
-        from django.utils.module_loading import import_by_path as import_string
-    except ImportError:
-        import_string = import_string
-
-    # Django >= 1.7
-    try:
-        from django.utils.module_loading import import_string
-    except ImportError:
-        import_string = import_string
-
-    if import_string is not None:
-        return import_string(dotted_path)
-
-    # Django == 1.4
-    from django.utils.importlib import import_module
-
-    class_data = dotted_path.split('.')
-    module_path = '.'.join(class_data[:-1])
-    class_str = class_data[-1]
-
-    module = import_module(module_path)
-    # Finally, we retrieve the Class
-    return getattr(module, class_str)
+    return import_string(dotted_path)
 
 
 def import_module(*args, **kwargs):
-    try:
-        from django.utils.importlib import import_module
-    except ImportError:
-        from importlib import import_module
+    from importlib import import_module
+
     return import_module(*args, **kwargs)
 
 
 def get_model(*args, **kwargs):
-    try:
-        from django.db.models import get_model as _get_model
-    except ImportError:
-        # Django > 1.8
-        from django.apps import apps
+    from django.apps import apps
 
-        def _get_model(*args, **kwargs):
-            return apps.get_model(*args, **kwargs)
-    return _get_model(*args, **kwargs)
+    return apps.get_model(*args, **kwargs)

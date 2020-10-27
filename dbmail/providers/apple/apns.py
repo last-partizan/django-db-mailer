@@ -15,7 +15,6 @@ from django.conf import settings
 
 from dbmail import defaults
 from dbmail.providers.apple.errors import APNsError
-from dbmail import PY3
 
 
 def send(token_hex, message, **kwargs):
@@ -54,8 +53,8 @@ def send(token_hex, message, **kwargs):
     else:
         token_length_bin = pack('>H', len(token))
         payload_length_bin = pack('>H', len(payload))
-        zero_byte = bytes('\0', 'utf-8') if PY3 is True else '\0'
-        payload = bytes(payload, 'utf-8') if PY3 is True else payload
+        zero_byte = bytes('\0', 'utf-8')
+        payload = bytes(payload, 'utf-8')
         notification = (
             zero_byte + token_length_bin + token +
             payload_length_bin + payload)
