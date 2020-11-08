@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from django.core import signing
-from celery import task
+from celery import shared_task
 
 from dbmail.defaults import SEND_RETRY_DELAY, SEND_RETRY, SEND_MAX_TIME, DEBUG
 from dbmail.utils import get_ip
 
 
-@task(name='dbmail.db_sender', default_retry_delay=SEND_RETRY_DELAY)
+@shared_task(name='dbmail.db_sender', default_retry_delay=SEND_RETRY_DELAY)
 def db_sender(*args, **kwargs):
     from dbmail import import_module
 
@@ -31,7 +31,7 @@ def db_sender(*args, **kwargs):
         raise
 
 
-@task(name='dbmail.subscription')
+@shared_task(name='dbmail.subscription')
 def db_subscription(*args, **kwargs):
     from dbmail import import_by_string
     from dbmail.defaults import MAIL_SUBSCRIPTION_MODEL
@@ -41,7 +41,7 @@ def db_subscription(*args, **kwargs):
     MailSubscription.notify(*args, **kwargs)
 
 
-@task(name='dbmail.signal_receiver')
+@shared_task(name='dbmail.signal_receiver')
 def signal_receiver(*args, **kwargs):
     from dbmail.signals import SignalReceiver
 
@@ -50,7 +50,7 @@ def signal_receiver(*args, **kwargs):
         return args[0]._meta.module_name
 
 
-@task(name='dbmail.deferred_signal')
+@shared_task(name='dbmail.deferred_signal')
 def deferred_signal(*args, **kwargs):
     from dbmail.signals import SignalReceiver
 
@@ -58,7 +58,7 @@ def deferred_signal(*args, **kwargs):
     return 'OK'
 
 
-@task(name='dbmail.mail_track')
+@shared_task(name='dbmail.mail_track')
 def mail_track(http_meta, encrypted):
     from dbmail.models import MailLogTrack, MailLog
 
